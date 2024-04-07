@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"google.golang.org/api/youtube/v3"
 	"log"
+	"os"
 	"time"
 	"youtube/constants"
 	"youtube/helper"
@@ -13,8 +14,18 @@ import (
 
 func PollVideos(youtubeService *youtube.Service) {
 	// Get MongoDB Database and Collection
-	database := helper.Client.Database(constants.DbName)
-	collection := database.Collection(constants.CollectionName)
+	dbName := os.Getenv("DB_NAME")
+	collectionName := os.Getenv("COLLECTION_NAME")
+	pollIntervalStr := os.Getenv("POLL_INTERVAL")
+	pollInterval, err := time.ParseDuration(pollIntervalStr)
+	if err != nil {
+		// Use the default poll interval if parsing fails
+		pollInterval = constants.DefaultPollInterval
+	}
+
+	database := helper.Client.Database(dbName)
+	collection := database.Collection(collectionName)
+
 	//Started for loop for polling videos every  PollInterval time
 	for {
 		videos, err := pollLatestVideos(youtubeService)
@@ -31,15 +42,16 @@ func PollVideos(youtubeService *youtube.Service) {
 			}
 		}
 
-		time.Sleep(constants.PollInterval)
+		time.Sleep(pollInterval)
 	}
 }
 
 func pollLatestVideos(service *youtube.Service) ([]*types.Video, error) {
 	oneMinuteAgo := time.Now().Add(-1 * time.Minute)
 	// Make a search API call to get the latest videos
+	searchQuery := os.Getenv("SEARCH_QUERY")
 	call := service.Search.List([]string{"snippet"}).
-		Q(constants.SearchQuery).
+		Q(searchQuery).
 		MaxResults(10).
 		Order("date").
 		Type("video").
@@ -53,15 +65,18 @@ func pollLatestVideos(service *youtube.Service) ([]*types.Video, error) {
 	// Parse the response and create a slice of Video objects
 	var videos []*types.Video
 	for _, item := range response.Items {
-		publishTime, err := time.Parse(time.RFC3339, item.Snippet.PublishedAt)
+		publishedAt, err := time.Parse(time.RFC3339, item.Snippet.PublishedAt)
 		if err != nil {
 			fmt.Printf("Error parsing published time: %v\n", err)
 			continue
 		}
 		video := &types.Video{
-			Title:       item.Snippet.Title,
-			Description: item.Snippet.Description,
-			PublishTime: publishTime,
+			Title:        item.Snippet.Title,
+			Description:  item.Snippet.Description,
+			ChannelId:    item.Snippet.ChannelId,
+			ChannelTitle: item.Snippet.ChannelTitle,
+			VideoId:      item.Id.VideoId,
+			PublishedAt:  publishedAt,
 			Thumbnails: types.Thumbnails{
 				Default: &types.Thumbnail{Url: item.Snippet.Thumbnails.Default.Url},
 				Medium:  &types.Thumbnail{Url: item.Snippet.Thumbnails.Medium.Url},

@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
+	"os"
 	"time"
 )
 
@@ -14,7 +15,8 @@ var Client *mongo.Client
 func GetClient() {
 	var err error
 	// Set client options and create new client
-	Client, err = mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
+	mongoDbUrl := os.Getenv("MONGO_DB_URL")
+	Client, err = mongo.NewClient(options.Client().ApplyURI(mongoDbUrl))
 	if err != nil {
 		log.Fatal(err)
 	}
