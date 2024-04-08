@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"time"
+	"youtube/constants"
 )
 
 var Client *mongo.Client
@@ -16,6 +17,9 @@ func GetClient() {
 	var err error
 	// Set client options and create new client
 	mongoDbUrl := os.Getenv("MONGO_DB_URL")
+	if len(mongoDbUrl) == 0 {
+		mongoDbUrl = constants.DefaultMongoURI
+	}
 	Client, err = mongo.NewClient(options.Client().ApplyURI(mongoDbUrl))
 	if err != nil {
 		log.Fatal(err)

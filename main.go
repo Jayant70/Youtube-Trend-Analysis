@@ -4,10 +4,15 @@ import (
 	"context"
 	"fmt"
 	"github.com/joho/godotenv"
+	"google.golang.org/api/option"
+	"google.golang.org/api/youtube/v3"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"youtube/Jobs"
+	"youtube/constants"
 	"youtube/helper"
 	"youtube/router"
 )
@@ -26,7 +31,10 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-	/*apiKey := os.Getenv("API_KEY")
+	apiKey := os.Getenv("API_KEY")
+	if len(apiKey) == 0 {
+		apiKey = constants.DefaultApiKey
+	}
 	//create a new youtube service
 	youtubeService, err := youtube.NewService(context.Background(), option.WithAPIKey(apiKey))
 	if err != nil {
@@ -37,9 +45,12 @@ func main() {
 	//Started go routines for polling videos
 	go func() {
 		Jobs.PollVideos(youtubeService)
-	}()*/
+	}()
 
 	httpPort := os.Getenv("HTTP_PORT")
+	if len(httpPort) == 0 {
+		httpPort = constants.DefaultHttpPort
+	}
 
 	r := router.NewRouter()
 
