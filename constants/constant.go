@@ -17,5 +17,6 @@ const (
 	GET  = "GET"
 
 	// GetVideosDataURI get videos
-	GetVideosDataURI = ContextPath + "/videos"
+	GetVideosDataURI        = ContextPath + "/videos"
+	GetVideosDataByQueryURI = ContextPath + "/videos/search"
 )

@@ -22,4 +22,10 @@ var routes = Routes{
 		constants.GetVideosDataURI,
 		handler.GetVideosHandler,
 	},
+	Route{
+		"GetVideosDataByQuery",
+		constants.GET,
+		constants.GetVideosDataByQueryURI,
+		handler.GetVideosDataByQueryHandler,
+	},
 }
